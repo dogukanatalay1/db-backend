@@ -14,6 +14,7 @@ const products = [
         FavAmount: 3,
         ProductCategory_ID: 3,
         CustomerType_ID: 2,
+        Price: 1200,
     },
     {
         ID: 2,
@@ -25,6 +26,7 @@ const products = [
         FavAmount: 3,
         ProductCategory_ID: 3,
         CustomerType_ID: 2,
+        Price: 1492,
     },
     {
         ID: 3,
@@ -37,6 +39,7 @@ const products = [
         FavAmount: 3,
         ProductCategory_ID: 3,
         CustomerType_ID: 2,
+        Price: 400,
     },
     {
         ID: 4,
@@ -49,6 +52,7 @@ const products = [
         FavAmount: 3,
         ProductCategory_ID: 3,
         CustomerType_ID: 2,
+        Price: 1200,
     },
     {
         ID: 5,
@@ -60,6 +64,7 @@ const products = [
         FavAmount: 3,
         ProductCategory_ID: 3,
         CustomerType_ID: 2,
+        Price: 1200,
     },
 ];
 
@@ -96,8 +101,6 @@ const getProduct = async (req, res, next) => {
 
     try {
         const product = products.find((product) => product.ID === idInt);
-
-        console.log(product);
 
         if (!product) {
             return next(

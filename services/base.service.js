@@ -4,7 +4,8 @@ const getAll = async (model) => await sequelize.query(`SELET * FROM ${model}`);
 
 const getAllByQuery = async (model, key, query) => await sequelize.query();
 
-const getOneById = async (model, id) => await sequelize.query();
+const getOneById = async (model, id) =>
+    await sequelize.query(`SELECT * FROM ${model} WHERE ID = ${id}`);
 
 const getOneByQuery = async (model, key, query) => await sequelize.query();
 
