@@ -2,75 +2,11 @@ const ApiError = require('../scripts/responses/api-error');
 const ApiDataSuccess = require('../scripts/responses/api-data-success');
 const httpStatus = require('http-status');
 const BaseService = require('../services/base.service');
-
-const products = [
-    {
-        ID: 1,
-        Name: 'Sırt kaşıma aparatı',
-        ImageUrl:
-            'https://productimages.hepsiburada.net/s/2/1500/9576631664690.jpg',
-        SaleAmount: 3,
-        Score: 3,
-        FavAmount: 3,
-        ProductCategory_ID: 3,
-        CustomerType_ID: 2,
-        Price: 1200,
-    },
-    {
-        ID: 2,
-        Name: ' Oto Kış Lastiği',
-        ImageUrl:
-            'https://productimages.hepsiburada.net/s/35/500/10483858604082.jpg',
-        SaleAmount: 3,
-        Score: 3,
-        FavAmount: 3,
-        ProductCategory_ID: 3,
-        CustomerType_ID: 2,
-        Price: 1492,
-    },
-    {
-        ID: 3,
-        Name: 'Varol Lastikli Pamuk Çizgili Çift Kişilik Nevresim Takım-Beyaz',
-        ImageUrl:
-            // eslint-disable-next-line max-len
-            'https://productimages.hepsiburada.net/s/312/1500/110000305305759.jpg',
-        SaleAmount: 3,
-        Score: 3,
-        FavAmount: 3,
-        ProductCategory_ID: 3,
-        CustomerType_ID: 2,
-        Price: 400,
-    },
-    {
-        ID: 4,
-        Name: 'Dp Daily Perfection Çörek Otu Yağı Tuzsuz Şampuan 500 ml',
-        ImageUrl:
-            // eslint-disable-next-line max-len
-            'https://productimages.hepsiburada.net/s/289/1500/110000278254697.jpg',
-        SaleAmount: 3,
-        Score: 3,
-        FavAmount: 3,
-        ProductCategory_ID: 3,
-        CustomerType_ID: 2,
-        Price: 1200,
-    },
-    {
-        ID: 5,
-        Name: 'ertbile emzik',
-        ImageUrl:
-            'https://productimages.hepsiburada.net/s/31/500/10323153911858.jpg',
-        SaleAmount: 3,
-        Score: 3,
-        FavAmount: 3,
-        ProductCategory_ID: 3,
-        CustomerType_ID: 2,
-        Price: 1200,
-    },
-];
+const { sequelize } = require('../loaders/db-connection.loader');
 
 const getProducts = async (req, res, next) => {
     try {
-        // const products = await BaseService.getAll();
+        const products = await BaseService.getAll('product');
 
         if (!products) {
             return next(
@@ -97,10 +33,8 @@ const getProducts = async (req, res, next) => {
 const getProduct = async (req, res, next) => {
     const { id } = req.params;
 
-    let idInt = parseInt(id);
-
     try {
-        const product = products.find((product) => product.ID === idInt);
+        const product = BaseService.getOneById('product', id);
 
         if (!product) {
             return next(
@@ -128,9 +62,16 @@ const getProductsByCategory = async (req, res, next) => {
     const { category } = req.params;
 
     try {
-        const products = BaseService.getAllByQuery(category);
+        const products = await sequelize.query(
+            `SELECT * FROM shopapp.product,
+            shopapp.productcategory 
+            WHERE shopapp.productcategory.name = '${category}';
+            `
+        );
 
-        if (!products) {
+        const validProducts = products[0];
+
+        if (!validProducts) {
             return next(
                 new ApiError(
                     'There have been an error!',
@@ -143,7 +84,7 @@ const getProductsByCategory = async (req, res, next) => {
             `${category} category products fetched succesfully!`,
             httpStatus.OK,
             res,
-            products
+            validProducts
         );
     } catch (error) {
         return next(
@@ -212,10 +153,64 @@ const deleteProduct = async (req, res, next) => {
     }
 };
 
+const getCategories = async (req, res, next) => {
+    try {
+        const categories = await BaseService.getAll('productcategory');
+
+        const categoryList = categories[0];
+
+        ApiDataSuccess.send(
+            'Categories fetched succesfully!',
+            httpStatus.OK,
+            res,
+            categoryList
+        );
+    } catch (error) {
+        return next(
+            new ApiError(error.message, httpStatus.INTERNAL_SERVER_ERROR)
+        );
+    }
+};
+
+const getProductsByCustomerType = async (req, res, next) => {
+    const { customertype } = req.params;
+
+    try {
+        const products = await sequelize.query(
+            `SELECT * FROM shopapp.product WHERE
+            CustomerType_ID = ${customertype};`
+        );
+
+        const validProducts = products[0];
+
+        if (validProducts.length == 0) {
+            return next(
+                new ApiError(
+                    'There is no product with this customertype',
+                    httpStatus.BAD_REQUEST
+                )
+            );
+        }
+
+        ApiDataSuccess.send(
+            'Products by customertype fetched!',
+            httpStatus.OK,
+            res,
+            validProducts
+        );
+    } catch (error) {
+        return next(
+            new ApiError(error.message, httpStatus.INTERNAL_SERVER_ERROR)
+        );
+    }
+};
+
 module.exports = {
     getProducts,
     getProduct,
     createProduct,
     deleteProduct,
     getProductsByCategory,
+    getCategories,
+    getProductsByCustomerType,
 };

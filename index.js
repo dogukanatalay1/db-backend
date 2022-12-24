@@ -17,6 +17,8 @@ app.get('/', (req, res) => {
 });
 
 app.use('/products', routes.products);
+app.use('/users', routes.users);
+app.use('/companies', routes.companies);
 
 app.use(errorHandler);
 

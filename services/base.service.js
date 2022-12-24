@@ -1,11 +1,14 @@
 const sequelize = require('../scripts/helpers/sequelize.helper');
 
-const getAll = async (model) => await sequelize.query(`SELET * FROM ${model}`);
+const getAll = async (model) =>
+    await sequelize.query(`SELECT * FROM shopapp.${model}`);
 
-const getAllByQuery = async (model, key, query) => await sequelize.query();
+const getAllByQuery = async (model, query) => await sequelize.query();
 
 const getOneById = async (model, id) =>
-    await sequelize.query(`SELECT * FROM ${model} WHERE ID = ${id}`);
+    await sequelize.query(
+        `SELET * FROM shopapp.${model} WHERE ${model}.ID = ${id}`
+    );
 
 const getOneByQuery = async (model, key, query) => await sequelize.query();
 
