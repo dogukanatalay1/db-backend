@@ -4,7 +4,6 @@ const httpStatus = require('http-status');
 // const BaseService = require('../services/base.service');
 const { createLoginToken } = require('../scripts/helpers/jwt.helper');
 const sequelize = require('../scripts/helpers/sequelize.helper');
-const { or } = require('sequelize');
 
 const generateIdByGenderAndAge = (gender, age) => {
     let customerId = 0;
@@ -163,4 +162,241 @@ const getPastOrdersByCustomerId = async (req, res, next) => {
     }
 };
 
-module.exports = { login, register, getPastOrdersByCustomerId };
+const deleteUser = async (res, req, next) => {
+    const { customerId } = req.params;
+
+    try {
+        const deletedUser = await sequelize.query(`
+        DELETE FROM shopapp.customer WHERE (ID = ${customerId});`);
+
+        ApiDataSuccess.send(
+            'User deleted!',
+            httpStatus.OK,
+            res,
+            deletedUser[0]
+        );
+    } catch (error) {
+        return next(
+            new ApiError(error.message, httpStatus.INTERNAL_SERVER_ERROR)
+        );
+    }
+};
+
+const updateEmail = async (req, res, next) => {
+    const { email } = req.body;
+    const { customerId } = req.params;
+
+    try {
+        const updatedUser = await sequelize.query(`
+        UPDATE shopapp.customer SET Email = 
+        '${email}' WHERE (ID = ${customerId});`);
+
+        ApiDataSuccess.send(
+            'User deleted!',
+            httpStatus.OK,
+            res,
+            updatedUser[0]
+        );
+    } catch (error) {
+        return next(
+            new ApiError(error.message, httpStatus.INTERNAL_SERVER_ERROR)
+        );
+    }
+};
+
+const updatePassword = async (req, res, next) => {
+    const { password } = req.body;
+    const { customerId } = req.params;
+
+    try {
+        const updatedUser = await sequelize.query(`
+        UPDATE shopapp.customer SET Password =
+        '${password}' WHERE (ID = ${customerId})`);
+
+        ApiDataSuccess.send(
+            'User deleted!',
+            httpStatus.OK,
+            res,
+            updatedUser[0]
+        );
+    } catch (error) {
+        return next(
+            new ApiError(error.message, httpStatus.INTERNAL_SERVER_ERROR)
+        );
+    }
+};
+
+const createAndAddFirstAdress = async (req, res, next) => {
+    const { buildingNumber, street, localityArea, city, postCode } = req.body;
+    const { customerId } = req.params;
+
+    const intCustomerId = parseInt(customerId);
+
+    console.log(intCustomerId);
+
+    const intPostCode = parseInt(postCode);
+    try {
+        // eslint-disable-next-line no-unused-vars
+        const createdAdress = await sequelize.query(
+            `
+           INSERT INTO shopapp.adress (BuildingNumber, 
+           Street, LocalityArea, City, PostCode) 
+           VALUES (${buildingNumber}, '${street}', '${localityArea}',
+           '${city}', ${intPostCode});`
+        );
+
+        const updatedAdress = await sequelize.query(`
+            UPDATE shopapp.customer SET Adress_1_ID = 
+            (SELECT adress.ID FROM shopapp.adress WHERE
+            adress.City = '${city}' and adress.LocalityArea =
+            '${localityArea}' and adress.BuildingNumber =
+            '${buildingNumber}') WHERE ID = ${intCustomerId};
+            `);
+
+        console.log(updatedAdress[0]);
+
+        ApiDataSuccess.send(
+            'Address added!',
+            httpStatus.CREATED,
+            res,
+            updatedAdress[0]
+        );
+    } catch (error) {
+        return next(
+            new ApiError(error.message, httpStatus.INTERNAL_SERVER_ERROR)
+        );
+    }
+};
+
+const createAndAddSecondAddress = async (req, res, next) => {
+    const { buildingNumber, street, localityArea, city, postCode } = req.body;
+    const { customerId } = req.params;
+
+    const intPostCode = parseInt(postCode);
+    try {
+        // eslint-disable-next-line no-unused-vars
+        const createdAdress = await sequelize.query(
+            `
+           INSERT INTO shopapp.adress (BuildingNumber, 
+           Street, LocalityArea, City, PostCode) 
+           VALUES (${buildingNumber}, '${street}', '${localityArea}',
+           '${city}', ${intPostCode});`
+        );
+
+        const updatedAdress = await sequelize.query(`
+            UPDATE shopapp.customer SET Adress_2_ID = 
+            (SELECT adress.ID FROM shopapp.adress WHERE
+            adress.City = '${city}' and adress.LocalityArea =
+            '${localityArea}' and adress.BuildingNumber =
+            '${buildingNumber}') WHERE ID = ${customerId};
+            `);
+
+        console.log(updatedAdress[0]);
+
+        ApiDataSuccess.send(
+            'Address added!',
+            httpStatus.CREATED,
+            res,
+            updatedAdress[0]
+        );
+    } catch (error) {
+        return next(
+            new ApiError(error.message, httpStatus.INTERNAL_SERVER_ERROR)
+        );
+    }
+};
+
+const createFirstCard = async (req, res, next) => {
+    const { ownerName, cardNumber, month, year, cvc } = req.body;
+    const { customerId } = req.params;
+
+    const intCustomerId = parseInt(customerId);
+
+    const intCardNumber = parseInt(cardNumber);
+    const intMonth = parseInt(month);
+    const intYear = parseInt(year);
+    const intCVC = parseInt(cvc);
+
+    try {
+        // eslint-disable-next-line no-unused-vars
+        const createdCard = await sequelize.query(
+            `
+            INSERT INTO shopapp.creditcard
+            (OwnerName, CardNumber, Month, Year, CVC)
+            VALUES ('${ownerName}', ${intCardNumber},
+            ${intMonth}, ${intYear}, ${intCVC});
+            `
+        );
+
+        const updatedCard = await sequelize.query(`
+        UPDATE shopapp.customer SET Card_1_ID = 
+        (SELECT ID FROM shopapp.creditcard WHERE CardNumber
+        = ${intCardNumber} and CVC = ${intCVC}) WHERE (ID = ${intCustomerId});
+        `);
+
+        ApiDataSuccess.send(
+            'Card created!',
+            httpStatus.CREATED,
+            res,
+            updatedCard[0]
+        );
+    } catch (error) {
+        return next(
+            new ApiError(error.message, httpStatus.INTERNAL_SERVER_ERROR)
+        );
+    }
+};
+
+const createSecondCard = async (req, res, next) => {
+    const { ownerName, cardNumber, month, year, cvc } = req.body;
+    const { customerId } = req.params;
+
+    const intCustomerId = parseInt(customerId);
+
+    const intCardNumber = parseInt(cardNumber);
+    const intMonth = parseInt(month);
+    const intYear = parseInt(year);
+    const intCVC = parseInt(cvc);
+
+    try {
+        // eslint-disable-next-line no-unused-vars
+        const createdCard = await sequelize.query(
+            `
+            INSERT INTO shopapp.creditcard
+            (OwnerName, CardNumber, Month, Year, CVC)
+            VALUES ('${ownerName}', ${intCardNumber},
+            ${intMonth}, ${intYear}, ${intCVC});
+            `
+        );
+
+        const updatedCard = await sequelize.query(`
+        UPDATE shopapp.customer SET Card_2_ID = 
+        (SELECT ID FROM shopapp.creditcard WHERE CardNumber
+        = ${intCardNumber} and CVC = ${intCVC}) WHERE (ID = ${intCustomerId});
+        `);
+
+        ApiDataSuccess.send(
+            'Card created!',
+            httpStatus.CREATED,
+            res,
+            updatedCard[0]
+        );
+    } catch (error) {
+        return next(
+            new ApiError(error.message, httpStatus.INTERNAL_SERVER_ERROR)
+        );
+    }
+};
+
+module.exports = {
+    login,
+    register,
+    getPastOrdersByCustomerId,
+    deleteUser,
+    updateEmail,
+    updatePassword,
+    createAndAddFirstAdress,
+    createAndAddSecondAddress,
+    createFirstCard,
+    createSecondCard,
+};
