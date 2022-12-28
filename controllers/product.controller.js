@@ -537,6 +537,90 @@ const getSellAmountByGender = async (req, res, next) => {
     }
 };
 
+app.put('/product/:id', async (req, res) => {
+    const { id } = req.params;
+    const price = req.body.price;
+
+    try {
+        const [results, metadata] = await sequelize.query(
+            `
+        UPDATE shopapp.product SET Price = :price WHERE ID = :id
+      `,
+            {
+                replacements: { id, price },
+            }
+        );
+
+        res.send(results);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+app.get('/products/lowest-selling', async (req, res) => {
+    try {
+        const [results, metadata] = await sequelize.query(`
+        SELECT * FROM shopapp.product WHERE SaleAmount < 5 ORDER BY SaleAmount ASC
+      `);
+
+        res.send(results);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+app.get('/customers/most-points', async (req, res) => {
+    try {
+        const [results, metadata] = await sequelize.query(`
+        SELECT * FROM shopapp.customer WHERE Score > 2 ORDER BY Score DESC
+      `);
+
+        res.send(results);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+app.put('/customer/:id', async (req, res) => {
+    const { id } = req.params;
+    const score = req.body.score;
+    const customerTypeId = req.body.customerTypeId;
+
+    try {
+        const [results, metadata] = await sequelize.query(
+            `
+        UPDATE shopapp.customer SET Score = :score WHERE ID = :id AND CustomerType_ID = :customerTypeId
+      `,
+            {
+                replacements: { id, score, customerTypeId },
+            }
+        );
+
+        res.send(results);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+app.delete('/product/comment', async (req, res) => {
+    const { id, customerId, productId } = req.body;
+
+    try {
+        const [results, metadata] = await sequelize.query(
+            `
+        DELETE FROM shopapp.productcomment WHERE ID = :id AND Customer_ID = :customerId AND Product_ID = :productId
+      `,
+            {
+                replacements: { id, customerId, productId },
+            }
+        );
+
+        res.send(results);
+    } catch (error) {
+        res.send();
+    }
+});
+
 module.exports = {
     getProducts,
     getProduct,
@@ -559,4 +643,5 @@ module.exports = {
     getReturnedList,
     getMostSoldProducts,
     getSellAmountByGender,
+    discount,
 };
