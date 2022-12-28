@@ -3,6 +3,8 @@ const ApiDataSuccess = require('../scripts/responses/api-data-success');
 const httpStatus = require('http-status');
 const BaseService = require('../services/base.service');
 const { sequelize } = require('../loaders/db-connection.loader');
+const express = require('express');
+const app = express();
 
 const getProducts = async (req, res, next) => {
     try {
@@ -617,7 +619,7 @@ app.delete('/product/comment', async (req, res) => {
 
         res.send(results);
     } catch (error) {
-        res.send();
+        res.send(results);
     }
 });
 
@@ -643,5 +645,4 @@ module.exports = {
     getReturnedList,
     getMostSoldProducts,
     getSellAmountByGender,
-    discount,
 };
